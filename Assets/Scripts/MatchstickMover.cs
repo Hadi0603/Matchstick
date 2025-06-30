@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -5,6 +6,7 @@ public class MatchstickMover : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private GameObject[] winSpots;
+    [SerializeField] private GameObject[] mustBeEmptySpots;
     [SerializeField] private GameObject levelWonUI;
     private Camera cam;
 
@@ -132,7 +134,7 @@ public class MatchstickMover : MonoBehaviour
         return null;
     }
 
-    System.Collections.IEnumerator MoveToSpot(GameObject matchstick, GameObject spot)
+    IEnumerator MoveToSpot(GameObject matchstick, GameObject spot)
     {
         Vector3 startPos = matchstick.transform.position;
         float startRotZ = matchstick.transform.eulerAngles.z;
@@ -162,25 +164,58 @@ public class MatchstickMover : MonoBehaviour
         matchstick.transform.position = targetPos;
         matchstick.transform.rotation = Quaternion.Euler(0, 0, targetRotZ);
         matchstick.transform.localScale = originalScale;
-        CheckWin();
+        yield return StartCoroutine(CheckWin());
     }
 
-    void CheckWin()
+    IEnumerator CheckWin()
     {
         foreach (GameObject spot in winSpots)
         {
             if (!spot.GetComponent<SpotOccupied>().isOccupied)
             {
-                return;
+                yield break;
             }
         }
-        levelWonUI.SetActive(true);
+        // All mustBeEmptySpots must NOT be occupied
+        if (mustBeEmptySpots.Length > 0)
+        {
+            foreach (GameObject spot in mustBeEmptySpots)
+            {
+                if (spot.GetComponent<SpotOccupied>().isOccupied)
+                    yield break;
+            }
+        }
+        
+        yield return StartCoroutine(HandleLevelWin());
     }
-
-
-    public void ReplayBtn()
+    private IEnumerator HandleLevelWin()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Block interaction
+        InputEnabled(false);
+
+        // Wait for 0.5 seconds
+        yield return new WaitForSeconds(0.5f);
+
+        // Show win UI
+        levelWonUI.SetActive(true);
+        if (GameManager.levelToLoad < SceneManager.sceneCountInBuildSettings - 1)
+        {
+            PlayerPrefs.SetInt("levelToLoad", ++GameManager.levelToLoad);
+        }
+
+        PlayerPrefs.Save();
+    }
+    private void InputEnabled(bool enabled)
+    {
+        foreach (GameObject matchstick in GameObject.FindGameObjectsWithTag("MatchStick"))
+        {
+            matchstick.GetComponent<Collider2D>().enabled = enabled;
+        }
+
+        foreach (GameObject holder in GameObject.FindGameObjectsWithTag("HolderSpot"))
+        {
+            holder.GetComponent<Collider2D>().enabled = enabled;
+        }
     }
 
 }
