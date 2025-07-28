@@ -1,0 +1,5 @@
+NAME : StickIt: Tap Matchstick Challenge
+PACAKGE NAME : com.stmc.stickittapmatchstickchallenge
+KEYSTORE / ALIAS / COMPANY: STMC
+PASSWORD: Airi@dev01
+VERSION 1, BUNDLE 1.0.

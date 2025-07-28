@@ -6,13 +6,15 @@ public class MatchstickMover : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private GameObject[] winSpots;
+    [SerializeField] private GameObject[] winSpots1;
     [SerializeField] private GameObject[] mustBeEmptySpots;
-    [SerializeField] private GameObject levelWonUI;
+    private UIManager uiManager;
     private Camera cam;
 
     private void Start()
     {
         cam = Camera.main;
+        uiManager = FindObjectOfType<UIManager>();
         InitializeSpots();
     }
     void InitializeSpots()
@@ -169,13 +171,35 @@ public class MatchstickMover : MonoBehaviour
 
     IEnumerator CheckWin()
     {
+        bool winSpotsComplete = true;
         foreach (GameObject spot in winSpots)
         {
             if (!spot.GetComponent<SpotOccupied>().isOccupied)
             {
-                yield break;
+                winSpotsComplete = false;
+                break;
             }
         }
+
+        bool winSpots1Complete = false;
+        if (winSpots1.Length > 0)
+        {
+            winSpots1Complete = true;
+            foreach (GameObject spot1 in winSpots1)
+            {
+                if (!spot1.GetComponent<SpotOccupied>().isOccupied)
+                {
+                    winSpots1Complete = false;
+                    break;
+                }
+            }
+        }
+        
+
+        // If neither winSpots nor winSpots1 are completely filled, stop.
+        if (!winSpotsComplete && !winSpots1Complete)
+            yield break;
+        
         // All mustBeEmptySpots must NOT be occupied
         if (mustBeEmptySpots.Length > 0)
         {
@@ -195,9 +219,8 @@ public class MatchstickMover : MonoBehaviour
 
         // Wait for 0.5 seconds
         yield return new WaitForSeconds(0.5f);
-
-        // Show win UI
-        levelWonUI.SetActive(true);
+        
+        uiManager.TriggerGameWon();
         if (GameManager.levelToLoad < SceneManager.sceneCountInBuildSettings - 1)
         {
             PlayerPrefs.SetInt("levelToLoad", ++GameManager.levelToLoad);
@@ -205,7 +228,7 @@ public class MatchstickMover : MonoBehaviour
 
         PlayerPrefs.Save();
     }
-    private void InputEnabled(bool enabled)
+    public void InputEnabled(bool enabled)
     {
         foreach (GameObject matchstick in GameObject.FindGameObjectsWithTag("MatchStick"))
         {
