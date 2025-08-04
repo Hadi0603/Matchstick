@@ -10,12 +10,11 @@ public class GameManager : MonoBehaviour
     public static int levelToLoad;
     //[SerializeField] private GameObject pauseUI;
     //[SerializeField] private GameObject pauseBtn;
-    private UIManager uiManager;
+    //public UIManager uiManager;
 
     private void Start()
     {
         levelToLoad = PlayerPrefs.GetInt("levelToLoad", 1);
-        uiManager = FindObjectOfType<UIManager>();
     }
 
     public void Play()
@@ -28,15 +27,17 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    public void PauseBtn()
+    /*public void PauseBtn()
     {
+        click.Play();
         uiManager.OpenPauseMenu();
     }
 
     public void ResumeBtn()
     {
+        click.Play();
         uiManager.ClosePauseMenu();
-    }
+    }*/
 
     public void MenuBtn()
     {
